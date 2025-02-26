@@ -4,10 +4,10 @@ import sys
 import math
 
 def get_roi_params(timestamp):
-    if timestamp < 27:
-        return (350, 50, 350, 950, 1000, 300)
+    if timestamp < 28:
+        return (300, 0, 440, 970, 1100, 200)
     elif timestamp < 58:
-        return (300, 0, 500, 1000, 900, 300)
+        return (400, 50,250, 900, 1050, 200)
     else:
         return (400, 70, 360, 920, 980, 320)
 
@@ -27,11 +27,11 @@ def w2g(img, timestamp, white_thresh=240, new_val=200):
     trans = cv2.getPerspectiveTransform(src, dst)
     output = cv2.warpPerspective(img, trans, (x2, y2))
     hsv = cv2.cvtColor(output, cv2.COLOR_BGR2RGB)
-    lower_yellow = np.array([200, 200, 200])
+    lower_yellow = np.array([195, 195, 195])
     upper_yellow = np.array([255, 255, 255])
     mask_yellow = cv2.inRange(hsv, lower_yellow, upper_yellow)
-    lower_white = np.array([180, 180, 0])
-    upper_white = np.array([255, 255, 150])
+    lower_white = np.array([170, 170, 0])
+    upper_white = np.array([255, 255, 165])
     mask_white = cv2.inRange(hsv, lower_white, upper_white)
     mask = cv2.bitwise_or(mask_white, mask_yellow)
     kernel = np.ones((5, 5), np.uint8)
@@ -92,6 +92,7 @@ def sw_polyfit(binary_img, nwindows=50, margin=40, minpix=20):
 
 def draw_ln(original_img, binary_img, left_fit, right_fit, timestamp):
     rarrow = cv2.imread('arrow.png', cv2.IMREAD_UNCHANGED)
+    rarrow = cv2.resize(rarrow, (250,250))
     result = original_img.copy()
     overlay = np.zeros_like(original_img)
     ploty = np.linspace(0, binary_img.shape[0] - 1, binary_img.shape[0])
@@ -176,7 +177,12 @@ def main():
             print("Out of frames")
             break
         timestamp = cap.get(cv2.CAP_PROP_POS_MSEC) / 1000.0
+        print(timestamp)
         result = proc_img(frame, timestamp)
+        xo, xa, x1, x2, y1, y2 = get_roi_params(timestamp)
+        points = np.array([[xo,y1],[xo + x1, y1], [xa + x2, y1 + y2], [xa, y1 + y2]])
+        points = points.reshape((-1, 1, 2))
+        cv2.polylines(result, [points], isClosed = True, color = (255, 255, 255), thickness = 5)
         cv2.imshow("Lane Detection", result)
         key = cv2.waitKey(1)
         if key == ord('q'):
