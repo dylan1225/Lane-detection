@@ -152,6 +152,7 @@ def get_roi_params(timestamp):
         return (300, 0, 440, 970, 1100, 200)
     elif timestamp < 58:
         return (400, 50, 440, 900, 1050, 150)
+        return (400, 50,250, 900, 1050, 200)
     else:
         return (400, 70, 360, 920, 980, 320)
 
@@ -236,6 +237,7 @@ def draw_ln(original_img, binary_img, left_fit, right_fit, timestamp):
     rarrow = cv2.imread('arrow.png', cv2.IMREAD_UNCHANGED)
     if rarrow is not None:
         rarrow = cv2.resize(rarrow, (250,250))
+    rarrow = cv2.resize(rarrow, (250,250))
     result = original_img.copy()
     overlay = np.zeros_like(original_img)
     ploty = np.linspace(0, binary_img.shape[0] - 1, binary_img.shape[0])
@@ -399,6 +401,31 @@ class LaneDetectionGUI:
             self.root.after(30, self.update_frame)
         else:
             self.update_placeholder()
+
+def main():
+    if len(sys.argv) < 2:
+        print("Usage: python lane_detection.py <image_path>")
+        sys.exit(1)
+    cap = cv2.VideoCapture("lane.MP4")
+    while cap.isOpened():
+        ret, frame = cap.read()
+        if not ret:
+            print("Out of frames")
+            break
+        timestamp = cap.get(cv2.CAP_PROP_POS_MSEC) / 1000.0
+        print(timestamp)
+        result = proc_img(frame, timestamp)
+        xo, xa, x1, x2, y1, y2 = get_roi_params(timestamp)
+        points = np.array([[xo,y1],[xo + x1, y1], [xa + x2, y1 + y2], [xa, y1 + y2]])
+        points = points.reshape((-1, 1, 2))
+        cv2.polylines(result, [points], isClosed = True, color = (255, 255, 255), thickness = 5)
+        cv2.imshow("Lane Detection", result)
+        key = cv2.waitKey(1)
+        if key == ord('q'):
+            break
+        if key == ord('w'):
+            input('')
+    cv2.destroyAllWindows()
 
 if __name__ == '__main__':
     root = tk.Tk()
