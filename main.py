@@ -102,6 +102,23 @@
 #         toggle_stream(self): Starts or stops the video stream.
 #         update_placeholder(self): Updates the GUI with placeholder images.
 #         update_frame(self): Updates the video frames in the GUI.
+#
+#
+#
+#         pseudo code
+#  -- -- --- -- -- -- -- -- -- -- --
+#  Initialize GUI
+#  store video stream
+#  Wait for start command
+#  start displaying video stream
+#  process video stream: 
+#    Blur, Canny, Skeletonize, color mask frame
+#    apply sliding window 
+#    polyfit a line given the point position of each window 
+#    calculate center line by taking mean of each window and polyfitting it
+#    display the lane line 
+#  display processed video 
+#  continue till video complete processing 
 ##############################################################
 
 import cv2
